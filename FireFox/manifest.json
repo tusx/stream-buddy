@@ -46,7 +46,10 @@
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "tusx@proton.me"
+      "id": "tusx@proton.me",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }
