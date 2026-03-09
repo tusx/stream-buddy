@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StreamBuddy</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0d253f;
+      color: white;
+      width: 280px; 
+      padding: 15px;
+      margin: 0;
+      /* Add position relative so our absolute modal covers it properly */
+      position: relative; 
+      min-height: 250px; 
+    }
+    
+    h2 {
+      color: #e50914;
+      margin: 0 0 10px 0;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    p {
+      font-size: 13px;
+      line-height: 1.4;
+      color: #cbd5e1;
+      margin-bottom: 15px;
+    }
+
+    .status-box {
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .status-active {
+      background-color: #e50914;
+      color: white;
+      border: 1px solid #b20710;
+      box-shadow: 0 0 8px rgba(229, 9, 20, 0.4);
+    }
+
+    .status-inactive {
+      background-color: #1e293b;
+      color: #64748b;
+      border: 1px solid #334155;
+    }
+
+    .clear-btn, .action-btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      background-color: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .clear-btn:hover {
+      background-color: #e50914;
+      color: white;
+      border-color: #b20710;
+    }
+
+    .action-btn:hover {
+      background-color: #0284c7;
+      color: white;
+      border-color: #0369a1;
+    }
+
+    /* JSON Input Section */
+    .input-section {
+      background: #0f172a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      border: 1px solid #334155;
+    }
+
+    select, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: #1e293b;
+      color: white;
+      border: 1px solid #334155;
+      border-radius: 5px;
+      padding: 8px;
+      margin-top: 5px;
+    }
+
+    textarea {
+      font-family: monospace;
+      font-size: 12px;
+      color: #a7f3d0;
+      resize: vertical;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .flex-row button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+    }
+
+    /* Custom Confirm Modal Styles */
+    #custom-confirm-modal {
+      display: none; 
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(13, 37, 63, 0.9);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      padding: 20px 15px;
+      border-radius: 8px;
+      border: 1px solid #e50914;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      width: 100%;
+    }
+
+    .modal-content p {
+      margin-top: 0;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎬 StreamBuddy</h2>
+  <p>Your companion for tracking watch history and jumping straight to the stream.</p>
+  
+  <div id="status-indicator" class="status-box status-inactive">
+    Checking site...
+  </div>
+
+  <button id="clear-history-btn" class="clear-btn">
+    🗑️ Clear Watch History
+  </button>
+
+  <hr style="border-color: #334155; margin: 15px 0;">
+
+  <div>
+    <label style="font-size: 13px; font-weight: bold;">⭐ Default Server</label>
+    <select id="default-server-select">
+      <option value="">None (Manual Selection)</option>
+    </select>
+
+    <button id="toggle-servers-btn" class="action-btn">
+      ➕ Add Servers
+    </button>
+    <button id="remove-servers-btn" class="clear-btn" style="display: none;">
+      🗑️ Remove All Servers
+    </button>
+  </div>
+
+  <div id="json-input-section" class="input-section" style="display: none;">
+    <p id="update-warning" style="color: #fbbf24; font-size: 11px; margin: 0 0 10px 0; display: none;">
+      ⚠️ Warning: Saving will replace all currently stored servers.
+    </p>
+    
+    <label style="font-size: 12px;">Paste Server JSON:</label>
+    <textarea id="server-json-input" rows="8" placeholder='[\n  {\n    "name": "vidsrc",\n    "movie_url": "...",\n    "tv_url": "..."\n  }\n]'></textarea>
+    
+    <div id="json-error" style="color: #ef4444; font-size: 12px; margin-top: 5px; display: none;"></div>
+    
+    <div class="flex-row">
+      <button id="save-json-btn" style="background: #22c55e;">Save</button>
+      <button id="cancel-json-btn" style="background: #64748b;">Cancel</button>
+    </div>
+  </div>
+
+  <div id="custom-confirm-modal">
+    <div class="modal-content">
+      <p>Are you sure you want to delete all stored servers?</p>
+      <div class="flex-row">
+        <button id="confirm-ok-btn" style="background: #e50914;">Delete</button>
+        <button id="confirm-cancel-btn" style="background: #64748b;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+
+</body>
+</html>

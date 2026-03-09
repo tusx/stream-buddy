@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "StreamBuddy",
+  "version": "1.0",
+  "description": "Track your watched videos and enhance your streaming experience.",
+  "icons": {
+        "16": "icons/StreamBuddy.png",
+        "128": "icons/StreamBuddy.png"
+    },
+
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "activeTab"
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/StreamBuddy.png",
+      "32": "icons/StreamBuddy.png",
+      "48": "icons/StreamBuddy.png"
+    }
+  },
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.themoviedb.org/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*.png"
+      ],
+      "matches": ["*://*.themoviedb.org/*"]
+    }
+  ],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tusx@proton.me"
+    }
+  }
+}

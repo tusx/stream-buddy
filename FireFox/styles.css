@@ -1,0 +1,169 @@
+/* --- Overlay Background --- */
+#streambuddy-overlay {
+  display: none; 
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 999999;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+}
+
+#streambuddy-overlay.active {
+  display: flex; 
+}
+
+/* --- Modal Container --- */
+.streambuddy-popup {
+  width: 90%;
+  height: 90%;
+  background: #0d253f;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  border: 1px solid #e50914; /* Red border */
+}
+
+/* --- Header & Title --- */
+.streambuddy-header {
+  padding: 15px 20px;
+  display: flex;
+  gap: 15px;
+  background: #032541;
+  border-radius: 12px 12px 0 0;
+  align-items: center;
+  border-bottom: 2px solid #e50914; /* Red bottom border */
+}
+
+.streambuddy-title {
+  color: white;
+  font-weight: bold;
+  margin-right: 20px;
+}
+
+/* --- Buttons --- */
+.streambuddy-close-btn {
+  /* position: absolute; */
+  top: 15px;
+  right: 20px;
+  background: #691717;
+  color: white;
+  border: none;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10;
+  transition: color 0.2s;
+}
+
+.streambuddy-close-btn:hover {
+  color: #e50914; /* Red on hover */
+}
+
+/* --- Dropdown Server Selection --- */
+.streambuddy-server-select {
+  padding: 8px 12px;
+  background: transparent;
+  color: white;
+  border: 2px solid #e50914;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  outline: none;
+  min-width: 130px;
+  transition: all 0.2s;
+  /* Appearance adjustments to fit the dark theme */
+  appearance: auto; 
+}
+
+.streambuddy-server-select:hover {
+  background: rgba(229, 9, 20, 0.15); /* Slight red tint on hover */
+}
+
+.streambuddy-server-select:focus {
+  box-shadow: 0 0 8px rgba(229, 9, 20, 0.5); /* Glow when focused */
+}
+
+/* Style the dropdown options (Native styling applies differently on some browsers, but this helps normalize it) */
+.streambuddy-server-select option {
+  background: #0d253f;
+  color: white;
+  font-weight: bold;
+}
+
+
+
+/* Watch Now Button on the TMDb page */
+#streambuddy-watch-btn {
+  background: #e50914;
+  color: white;
+  padding: 6px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.2s;
+}
+
+#streambuddy-watch-btn:hover {
+  background: #b20710; /* Darker red on hover */
+}
+
+/* --- Iframe Player --- */
+.streambuddy-iframe {
+  width: 100%;
+  flex-grow: 1;
+  border: none;
+  border-radius: 0 0 12px 12px;
+  background: #000;
+}
+
+/* --- TV Episode Watch Button --- */
+.streambuddy-ep-btn {
+  background: #e50914;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-left: 12px;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.streambuddy-ep-btn:hover {
+  background: #b20710;
+}
+
+/* --- Modal Button Container --- */
+.streambuddy-server-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- Watched PNG Badge (Mobile Friendly Inline) --- */
+.streambuddy-watched-badge {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  object-fit: contain;
+  
+  display: none; /* Hidden by default until DB confirms watched status */
+}
+
+.title{
+  display: block !important;
+}
