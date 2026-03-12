@@ -51,7 +51,7 @@ After installation, you need to add servers in a JSON format in the extension li
 
 I have purposefully changed the domain names to domain.com in the URLs so as to not attract any unwanted attention and to keep the extension away from unwanted DMCA stuff, but you should have gotten the idea of how the server's JSON should look.
 
-Where you see {{movie-id}} "or" {{tv-id}} and others in the URLs, it is there the extension inserts the TMDB IDs and season & episode numbers.
+Where you see `{{movie-id}}` "or" `{{tv-id}}` and others in the URLs, it is there the extension inserts the TMDB IDs and season & episode numbers.
 
 After adding servers, if the submitted JSON is correct, it will add the servers to the extension. It is best to select a default server, so whenever you click on Watch Now, it will automatically load the default server.
 
