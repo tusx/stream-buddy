@@ -63,7 +63,7 @@ Any ideas or contributions are welcome and appreciated.
 
 - I want to disclose that I have used Gemini & Claude in the making of this extension. i did not mindlessly prompt the Ai to make this extension, but carefully curated prompts and checked the code before adding it to the extension. If you find a mistake made by me or any Ai slip-ups that I have missed, please make an issue so it can be fixed. Thanks.
 
-- The FireFox extension uses `browser.storage.sync` for saving the servers and default server data, which automatically sync between active FireFox browsers if they are logged in with the same account and have this extension installed. So, in theory, if you add servers on one device, it should automatically add those to the other device with the same FireFox account.
+- The FireFox extension uses `browser.storage.sync` for saving the servers and default server data, which automatically sync between active FireFox browsers if they are logged in with the same account and have this extension installed. So, in theory, if you add servers on one device, it should automatically add those to the other device with the same FireFox account. `(not tested yet but will do so once the extention gets approved)`
 
 - The `Watch History` is not synced between devices because there is a limit on how much data an extension can sync according to FireFox, which is 100 kb or 102400 bytes to be exact. The `Watch History` is stored using `IndexedDB` and can be in the MB range so it won't be synced between browsers.
 
