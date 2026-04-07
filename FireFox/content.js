@@ -38,6 +38,7 @@ async function getServersConfig() {
 
 // 2. The Singleton Modal
 let globalModal = null;
+let modalSwitchToken = 0;
 const scrollLockState = {
   isLocked: false,
   scrollY: 0,
@@ -80,6 +81,69 @@ function unlockPageScroll() {
   scrollLockState.isLocked = false;
 }
 
+function showModalStatus(titleText, messageText, detailText = "") {
+  if (!globalModal) return;
+
+  const status = document.createElement('div');
+  status.className = "streambuddy-status";
+
+  const heading = document.createElement('h2');
+  heading.innerText = titleText;
+
+  const message = document.createElement('p');
+  message.innerText = messageText;
+
+  status.appendChild(heading);
+  status.appendChild(message);
+
+  if (detailText) {
+    const detail = document.createElement('p');
+    detail.className = "streambuddy-status-detail";
+    detail.innerText = detailText;
+    status.appendChild(detail);
+  }
+
+  globalModal.playerArea.replaceChildren(status);
+}
+
+function mountModalIframe(url) {
+  if (!globalModal) return;
+
+  const iframe = document.createElement('iframe');
+  iframe.className = "streambuddy-iframe";
+  iframe.allowFullscreen = true;
+  iframe.src = url;
+
+  globalModal.playerArea.replaceChildren(iframe);
+  globalModal.iframe = iframe;
+}
+
+function switchModalServer(url, serverName = "") {
+  modalSwitchToken += 1;
+  const currentToken = modalSwitchToken;
+
+  if (!url) {
+    globalModal.iframe = null;
+    showModalStatus(
+      "Waiting for selection...",
+      "Select a server from the dropdown above to begin.",
+      "(You can set a Default Server in the StreamBuddy extension menu to autoload automatically.)"
+    );
+    return;
+  }
+
+  globalModal.iframe = null;
+  showModalStatus(
+    "Switching server...",
+    serverName ? `Loading ${serverName}...` : "Loading your selected server..."
+  );
+
+  window.setTimeout(() => {
+    if (!globalModal || currentToken !== modalSwitchToken) return;
+    mountModalIframe(url);
+  }, 0);
+}
+
 function openVideoModal(titleText, servers, defaultServerName) {
   if (!globalModal) {
     const overlay = document.createElement('div');
@@ -101,38 +165,40 @@ function openVideoModal(titleText, servers, defaultServerName) {
     const btnContainer = document.createElement('div');
     btnContainer.className = "streambuddy-server-buttons";
 
+    const playerArea = document.createElement('div');
+    playerArea.className = "streambuddy-player-area";
+
     header.appendChild(title);
     header.appendChild(btnContainer);
 
-    const iframe = document.createElement('iframe');
-    iframe.className = "streambuddy-iframe";
-    iframe.allowFullscreen = true;
-
     closeBtn.onclick = () => {
       overlay.classList.remove("active");
-      iframe.src = "";
-      iframe.removeAttribute("srcdoc");
+      modalSwitchToken += 1;
+      playerArea.replaceChildren();
+      if (globalModal) {
+        globalModal.iframe = null;
+      }
       unlockPageScroll();
     };
 
     popupContainer.appendChild(closeBtn);
     popupContainer.appendChild(header);
-    popupContainer.appendChild(iframe);
+    popupContainer.appendChild(playerArea);
     overlay.appendChild(popupContainer);
     document.body.appendChild(overlay);
 
-    globalModal = { overlay, title, btnContainer, iframe };
+    globalModal = { overlay, title, btnContainer, playerArea, iframe: null };
   }
 
   globalModal.title.innerText = "StreamBuddy: " + titleText;
   globalModal.btnContainer.innerHTML = '';
-  globalModal.iframe.src = '';
-  globalModal.iframe.removeAttribute("srcdoc");
+  modalSwitchToken += 1;
+  globalModal.playerArea.replaceChildren();
+  globalModal.iframe = null;
 
   const selectMenu = document.createElement('select');
   selectMenu.className = "streambuddy-server-select";
 
-  // If no default is set, inject a blank placeholder option
   if (!defaultServerName) {
     const emptyOpt = document.createElement('option');
     emptyOpt.value = "";
@@ -142,7 +208,6 @@ function openVideoModal(titleText, servers, defaultServerName) {
 
   let autoLoadUrl = "";
 
-  // Populate dropdown and find default URL
   servers.forEach((server) => {
     const option = document.createElement('option');
     option.value = server.url;
@@ -156,32 +221,19 @@ function openVideoModal(titleText, servers, defaultServerName) {
     selectMenu.appendChild(option);
   });
 
-  // Update iframe when selection changes
   selectMenu.addEventListener('change', (e) => {
-    if (e.target.value) {
-      globalModal.iframe.removeAttribute("srcdoc");
-      globalModal.iframe.src = e.target.value;
-    }
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    switchModalServer(e.target.value, selectedOption ? selectedOption.innerText : "");
   });
 
   globalModal.btnContainer.appendChild(selectMenu);
   globalModal.overlay.classList.add("active");
   lockPageScroll();
 
-  // Handle autoloading vs prompting user
   if (autoLoadUrl) {
-    globalModal.iframe.src = autoLoadUrl;
+    switchModalServer(autoLoadUrl, defaultServerName);
   } else {
-    // Inject HTML straight into the iframe to instruct the user
-    globalModal.iframe.srcdoc = `
-      <html style="height: 100%; display: flex; justify-content: center; align-items: center; background: black; color: #cbd5e1; font-family: sans-serif;">
-        <body style="text-align: center;">
-          <h2 style="color: white; margin-bottom: 10px;">Waiting for selection...</h2>
-          <p>Select a server from the dropdown above to begin.</p>
-          <p style="font-size: 13px; color: #64748b;">(You can set a Default Server in the StreamBuddy extension menu to autoload automatically.)</p>
-        </body>
-      </html>
-    `;
+    switchModalServer("");
   }
 }
 

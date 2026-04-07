@@ -119,12 +119,49 @@
 }
 
 /* --- Iframe Player --- */
-.streambuddy-iframe {
+.streambuddy-player-area {
   width: 100%;
   flex-grow: 1;
+  display: flex;
+  border-radius: 0 0 12px 12px;
+  background: #000;
+  overflow: hidden;
+}
+
+.streambuddy-iframe {
+  width: 100%;
+  height: 100%;
   border: none;
   border-radius: 0 0 12px 12px;
   background: #000;
+}
+
+.streambuddy-status {
+  width: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #cbd5e1;
+  background: #000;
+  font-family: sans-serif;
+}
+
+.streambuddy-status h2 {
+  margin: 0 0 10px;
+  color: #fff;
+}
+
+.streambuddy-status p {
+  margin: 0;
+}
+
+.streambuddy-status-detail {
+  margin-top: 10px !important;
+  font-size: 13px;
+  color: #64748b;
 }
 
 /* --- TV Episode Watch Button --- */
