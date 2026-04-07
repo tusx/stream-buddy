@@ -5,7 +5,7 @@ async function sendMessageToBackground(message, retries = 3) {
   } catch (error) {
     if (retries > 0 && error.message.includes("Receiving end does not exist")) {
       console.log("StreamBuddy: Background asleep. Waking it up and retrying...");
-      await new Promise(resolve => setTimeout(resolve, 800)); 
+      await new Promise(resolve => setTimeout(resolve, 800));
       return sendMessageToBackground(message, retries - 1);
     }
     console.error("StreamBuddy Messaging Error:", error);
@@ -38,6 +38,47 @@ async function getServersConfig() {
 
 // 2. The Singleton Modal
 let globalModal = null;
+const scrollLockState = {
+  isLocked: false,
+  scrollY: 0,
+  bodyOverflow: "",
+  bodyPosition: "",
+  bodyTop: "",
+  bodyWidth: "",
+  htmlOverflow: ""
+};
+
+function lockPageScroll() {
+  if (scrollLockState.isLocked) return;
+
+  scrollLockState.scrollY = window.scrollY || window.pageYOffset || 0;
+  scrollLockState.bodyOverflow = document.body.style.overflow;
+  scrollLockState.bodyPosition = document.body.style.position;
+  scrollLockState.bodyTop = document.body.style.top;
+  scrollLockState.bodyWidth = document.body.style.width;
+  scrollLockState.htmlOverflow = document.documentElement.style.overflow;
+
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${scrollLockState.scrollY}px`;
+  document.body.style.width = "100%";
+
+  scrollLockState.isLocked = true;
+}
+
+function unlockPageScroll() {
+  if (!scrollLockState.isLocked) return;
+
+  document.documentElement.style.overflow = scrollLockState.htmlOverflow;
+  document.body.style.overflow = scrollLockState.bodyOverflow;
+  document.body.style.position = scrollLockState.bodyPosition;
+  document.body.style.top = scrollLockState.bodyTop;
+  document.body.style.width = scrollLockState.bodyWidth;
+  window.scrollTo(0, scrollLockState.scrollY);
+
+  scrollLockState.isLocked = false;
+}
 
 function openVideoModal(titleText, servers, defaultServerName) {
   if (!globalModal) {
@@ -53,13 +94,13 @@ function openVideoModal(titleText, servers, defaultServerName) {
 
     const header = document.createElement('div');
     header.className = "streambuddy-header";
-    
+
     const title = document.createElement('span');
     title.className = "streambuddy-title";
-    
+
     const btnContainer = document.createElement('div');
-    btnContainer.className = "streambuddy-server-buttons"; 
-    
+    btnContainer.className = "streambuddy-server-buttons";
+
     header.appendChild(title);
     header.appendChild(btnContainer);
 
@@ -69,8 +110,9 @@ function openVideoModal(titleText, servers, defaultServerName) {
 
     closeBtn.onclick = () => {
       overlay.classList.remove("active");
-      iframe.src = ""; 
+      iframe.src = "";
       iframe.removeAttribute("srcdoc");
+      unlockPageScroll();
     };
 
     popupContainer.appendChild(closeBtn);
@@ -83,7 +125,7 @@ function openVideoModal(titleText, servers, defaultServerName) {
   }
 
   globalModal.title.innerText = "StreamBuddy: " + titleText;
-  globalModal.btnContainer.innerHTML = ''; 
+  globalModal.btnContainer.innerHTML = '';
   globalModal.iframe.src = '';
   globalModal.iframe.removeAttribute("srcdoc");
 
@@ -105,12 +147,12 @@ function openVideoModal(titleText, servers, defaultServerName) {
     const option = document.createElement('option');
     option.value = server.url;
     option.innerText = server.name;
-    
+
     if (server.name === defaultServerName) {
       option.selected = true;
       autoLoadUrl = server.url;
     }
-    
+
     selectMenu.appendChild(option);
   });
 
@@ -124,7 +166,8 @@ function openVideoModal(titleText, servers, defaultServerName) {
 
   globalModal.btnContainer.appendChild(selectMenu);
   globalModal.overlay.classList.add("active");
-  
+  lockPageScroll();
+
   // Handle autoloading vs prompting user
   if (autoLoadUrl) {
     globalModal.iframe.src = autoLoadUrl;
@@ -142,13 +185,13 @@ function openVideoModal(titleText, servers, defaultServerName) {
   }
 }
 
-// 3. Movie Logic 
+// 3. Movie Logic
 function initMovieLogic(media) {
   const dbString = `tmdb-movie-${media.rawId}`;
   const titleContainer = document.querySelector('div.title');
 
   if (titleContainer && !document.getElementById('streambuddy-movie-action-bar')) {
-    
+
     const actionBar = document.createElement('div');
     actionBar.id = "streambuddy-movie-action-bar";
     actionBar.style.cssText = "display: flex; align-items: center; gap: 12px; margin-top: 15px; margin-bottom: 10px;";
@@ -171,7 +214,7 @@ function initMovieLogic(media) {
 
     watchBtn.onclick = async (e) => {
       e.preventDefault();
-      
+
       const config = await getServersConfig();
       if (config.servers.length === 0) {
         alert("StreamBuddy: No servers configured! Please click the extension icon and add your JSON servers first.");
@@ -179,13 +222,13 @@ function initMovieLogic(media) {
       }
 
       sendMessageToBackground({ action: "markPlayed", videoId: dbString });
-      badge.style.display = 'block'; 
-      
+      badge.style.display = 'block';
+
       // Parse template URLs and sort alphabetically
       const processedServers = config.servers.map(s => ({
         name: s.name,
         // Global replace just in case '{{movie-id}}' appears multiple times
-        url: s.movie_url.replace(/\{\{movie-id\}\}/g, media.rawId) 
+        url: s.movie_url.replace(/\{\{movie-id\}\}/g, media.rawId)
       })).sort((a, b) => a.name.localeCompare(b.name));
 
       openVideoModal("Movie", processedServers, config.defaultServer);
@@ -197,7 +240,7 @@ function initMovieLogic(media) {
   }
 }
 
-// 4. TV Show Logic 
+// 4. TV Show Logic
 function initTvLogic(media) {
   const episodeTitles = document.querySelectorAll('.episode_title h3');
 
@@ -206,10 +249,10 @@ function initTvLogic(media) {
 
     const link = h3.querySelector('a');
     if (!link) return;
-    
+
     const epId = link.getAttribute('data-episode-number');
     const dbString = `tmdb-tv-${media.rawId}-${media.seasonId}-${epId}`;
-    
+
     h3.style.display = 'flex';
     h3.style.alignItems = 'center';
     h3.style.flexWrap = 'wrap';
@@ -240,8 +283,8 @@ function initTvLogic(media) {
       }
 
       sendMessageToBackground({ action: "markPlayed", videoId: dbString });
-      badge.style.display = 'block'; 
-      
+      badge.style.display = 'block';
+
       // Parse template URLs and sort alphabetically
       const processedServers = config.servers.map(s => ({
         name: s.name,
