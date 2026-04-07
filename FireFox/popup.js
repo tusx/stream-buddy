@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const statusIndicator = document.getElementById("status-indicator");
   const clearBtn = document.getElementById("clear-history-btn");
+  const moviesWatchedValue = document.getElementById("movies-watched-value");
+  const episodesWatchedValue = document.getElementById("episodes-watched-value");
 
   // Server UI Elements
   const toggleServersBtn = document.getElementById("toggle-servers-btn");
@@ -17,6 +19,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   const confirmModal = document.getElementById("custom-confirm-modal");
   const confirmOkBtn = document.getElementById("confirm-ok-btn");
   const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
+
+  async function refreshWatchStats() {
+    try {
+      const response = await browser.runtime.sendMessage({ action: "getWatchStats" });
+      if (response && response.success && response.stats) {
+        moviesWatchedValue.textContent = response.stats.movies;
+        episodesWatchedValue.textContent = response.stats.episodes;
+        return;
+      }
+    } catch (error) {
+      console.error("StreamBuddy: Failed to load watch stats.", error);
+    }
+
+    moviesWatchedValue.textContent = "0";
+    episodesWatchedValue.textContent = "0";
+  }
 
   // --- 1. Existing Tab Checking Logic ---
   try {
@@ -37,6 +55,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     statusIndicator.textContent = "⚠️ Error checking status";
   }
 
+  refreshWatchStats();
+
   // --- 2. History Logic (Now completely inline, no alerts!) ---
   clearBtn.addEventListener("click", async () => {
     const originalText = clearBtn.innerHTML;
@@ -48,6 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         clearBtn.style.backgroundColor = "#22c55e"; 
         clearBtn.style.borderColor = "#16a34a";
         clearBtn.style.color = "white";
+        refreshWatchStats();
       } else {
         // Inline Error State
         clearBtn.innerHTML = "❌ Failed to clear history";

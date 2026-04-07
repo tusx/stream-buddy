@@ -54,6 +54,38 @@
       border: 1px solid #334155;
     }
 
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .stat-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    .stat-value {
+      display: block;
+      color: #f8fafc;
+      font-size: 22px;
+      font-weight: bold;
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
     .clear-btn, .action-btn {
       margin-top: 10px;
       width: 100%;
@@ -165,6 +197,17 @@
   
   <div id="status-indicator" class="status-box status-inactive">
     Checking site...
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span id="movies-watched-value" class="stat-value">0</span>
+      <span class="stat-label">Movies Watched</span>
+    </div>
+    <div class="stat-card">
+      <span id="episodes-watched-value" class="stat-value">0</span>
+      <span class="stat-label">Episodes Watched</span>
+    </div>
   </div>
 
   <button id="clear-history-btn" class="clear-btn">

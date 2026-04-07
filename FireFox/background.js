@@ -77,7 +77,44 @@ async function clearHistory() {
   });
 }
 
-// 5. Message Listener (The "API" for your Content & Popup Scripts)
+// 5. Function to summarize watched items for the popup
+async function getWatchStats() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.getAllKeys();
+
+    request.onsuccess = (event) => {
+      const keys = event.target.result || [];
+      let movieCount = 0;
+      let episodeCount = 0;
+
+      keys.forEach((videoId) => {
+        if (typeof videoId !== "string") return;
+
+        if (videoId.startsWith("tmdb-movie-")) {
+          movieCount += 1;
+          return;
+        }
+
+        if (videoId.startsWith("tmdb-tv-")) {
+          episodeCount += 1;
+        }
+      });
+
+      resolve({
+        movies: movieCount,
+        episodes: episodeCount,
+        total: movieCount + episodeCount
+      });
+    };
+
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+// 6. Message Listener (The "API" for your Content & Popup Scripts)
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Route: Save a video
@@ -102,5 +139,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then(() => sendResponse({ success: true }))
       .catch((error) => sendResponse({ success: false, error: error.toString() }));
     return true; 
+  }
+
+  // Route: Watch stats for popup
+  if (message.action === "getWatchStats") {
+    getWatchStats()
+      .then((stats) => sendResponse({ success: true, stats }))
+      .catch((error) => sendResponse({ success: false, error: error.toString() }));
+    return true;
   }
 });
