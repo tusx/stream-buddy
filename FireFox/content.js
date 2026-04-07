@@ -38,6 +38,7 @@ async function getServersConfig() {
 
 // 2. The Singleton Modal
 let globalModal = null;
+let confirmModal = null;
 let modalSwitchToken = 0;
 const scrollLockState = {
   isLocked: false,
@@ -142,6 +143,111 @@ function switchModalServer(url, serverName = "") {
     if (!globalModal || currentToken !== modalSwitchToken) return;
     mountModalIframe(url);
   }, 0);
+}
+
+function ensureConfirmModal() {
+  if (confirmModal) return confirmModal;
+
+  const overlay = document.createElement('div');
+  overlay.id = "streambuddy-confirm-overlay";
+
+  const modal = document.createElement('div');
+  modal.className = "streambuddy-confirm-modal";
+
+  const title = document.createElement('h3');
+  title.className = "streambuddy-confirm-title";
+
+  const message = document.createElement('p');
+  message.className = "streambuddy-confirm-message";
+
+  const detail = document.createElement('p');
+  detail.className = "streambuddy-confirm-detail";
+
+  const buttonRow = document.createElement('div');
+  buttonRow.className = "streambuddy-confirm-actions";
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = "button";
+  cancelBtn.className = "streambuddy-confirm-btn secondary";
+  cancelBtn.textContent = "Cancel";
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.type = "button";
+  confirmBtn.className = "streambuddy-confirm-btn danger";
+  confirmBtn.textContent = "Remove";
+
+  buttonRow.appendChild(cancelBtn);
+  buttonRow.appendChild(confirmBtn);
+
+  modal.appendChild(title);
+  modal.appendChild(message);
+  modal.appendChild(detail);
+  modal.appendChild(buttonRow);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  confirmModal = {
+    overlay,
+    title,
+    message,
+    detail,
+    confirmBtn,
+    cancelBtn
+  };
+
+  return confirmModal;
+}
+
+function showDecorativeConfirm({
+  title,
+  message,
+  detail,
+  confirmText = "Remove"
+}) {
+  const modal = ensureConfirmModal();
+
+  modal.title.textContent = title;
+  modal.message.textContent = message;
+  modal.detail.textContent = detail || "";
+  modal.detail.style.display = detail ? "block" : "none";
+  modal.confirmBtn.textContent = confirmText;
+  modal.overlay.classList.add("active");
+
+  return new Promise((resolve) => {
+    const close = (confirmed) => {
+      modal.overlay.classList.remove("active");
+      modal.confirmBtn.removeEventListener("click", handleConfirm);
+      modal.cancelBtn.removeEventListener("click", handleCancel);
+      resolve(confirmed);
+    };
+
+    const handleConfirm = () => close(true);
+    const handleCancel = () => close(false);
+
+    modal.confirmBtn.addEventListener("click", handleConfirm, { once: true });
+    modal.cancelBtn.addEventListener("click", handleCancel, { once: true });
+  });
+}
+
+function setWatchedUiState(isWatched, badge, removeBtn) {
+  badge.style.display = isWatched ? 'block' : 'none';
+  removeBtn.style.display = isWatched ? 'inline-flex' : 'none';
+}
+
+function createRemoveWatchedButton() {
+  const removeBtn = document.createElement('button');
+  removeBtn.type = "button";
+  removeBtn.className = "streambuddy-remove-btn";
+  removeBtn.title = "Remove watched status";
+  removeBtn.setAttribute("aria-label", "Remove watched status");
+
+  const icon = document.createElement('img');
+  icon.src = browser.runtime.getURL("icons/remove.png");
+  icon.alt = "Remove watched status";
+  icon.className = "streambuddy-remove-icon";
+
+  removeBtn.appendChild(icon);
+  return removeBtn;
 }
 
 function openVideoModal(titleText, servers, defaultServerName) {
@@ -257,11 +363,12 @@ function initMovieLogic(media) {
     const badge = document.createElement('img');
     badge.className = 'streambuddy-watched-badge';
     badge.src = browser.runtime.getURL("icons/watched.png");
+    badge.alt = "Marked as watched";
+
+    const removeBtn = createRemoveWatchedButton();
 
     sendMessageToBackground({ action: "checkPlayed", videoId: dbString }).then((res) => {
-      if (res && res.played) {
-        badge.style.display = 'block';
-      }
+      setWatchedUiState(!!(res && res.played), badge, removeBtn);
     });
 
     watchBtn.onclick = async (e) => {
@@ -274,7 +381,7 @@ function initMovieLogic(media) {
       }
 
       sendMessageToBackground({ action: "markPlayed", videoId: dbString });
-      badge.style.display = 'block';
+      setWatchedUiState(true, badge, removeBtn);
 
       // Parse template URLs and sort alphabetically
       const processedServers = config.servers.map(s => ({
@@ -286,8 +393,27 @@ function initMovieLogic(media) {
       openVideoModal("Movie", processedServers, config.defaultServer);
     };
 
+    removeBtn.onclick = async (e) => {
+      e.preventDefault();
+
+      const confirmed = await showDecorativeConfirm({
+        title: "Remove watched mark?",
+        message: "This movie will be removed from your StreamBuddy watched history.",
+        detail: "If you continue, the green watched checkmark will disappear and StreamBuddy will treat this movie as unwatched until you mark it again.",
+        confirmText: "Remove"
+      });
+
+      if (!confirmed) return;
+
+      const response = await sendMessageToBackground({ action: "removePlayed", videoId: dbString });
+      if (response && response.success) {
+        setWatchedUiState(false, badge, removeBtn);
+      }
+    };
+
     actionBar.appendChild(watchBtn);
     actionBar.appendChild(badge);
+    actionBar.appendChild(removeBtn);
     titleContainer.appendChild(actionBar);
   }
 }
@@ -318,11 +444,12 @@ function initTvLogic(media) {
     const badge = document.createElement('img');
     badge.className = 'streambuddy-watched-badge';
     badge.src = browser.runtime.getURL("icons/watched.png");
+    badge.alt = "Marked as watched";
+
+    const removeBtn = createRemoveWatchedButton();
 
     sendMessageToBackground({ action: "checkPlayed", videoId: dbString }).then((res) => {
-      if (res && res.played) {
-        badge.style.display = 'block';
-      }
+      setWatchedUiState(!!(res && res.played), badge, removeBtn);
     });
 
     watchBtn.onclick = async (e) => {
@@ -335,7 +462,7 @@ function initTvLogic(media) {
       }
 
       sendMessageToBackground({ action: "markPlayed", videoId: dbString });
-      badge.style.display = 'block';
+      setWatchedUiState(true, badge, removeBtn);
 
       // Parse template URLs and sort alphabetically
       const processedServers = config.servers.map(s => ({
@@ -349,8 +476,27 @@ function initTvLogic(media) {
       openVideoModal(`Episode ${epId}`, processedServers, config.defaultServer);
     };
 
+    removeBtn.onclick = async (e) => {
+      e.preventDefault();
+
+      const confirmed = await showDecorativeConfirm({
+        title: "Remove watched mark?",
+        message: `Episode ${epId} will be removed from your StreamBuddy watched history.`,
+        detail: "If you continue, the green watched checkmark will disappear and StreamBuddy will treat this episode as unwatched until you mark it again.",
+        confirmText: "Remove"
+      });
+
+      if (!confirmed) return;
+
+      const response = await sendMessageToBackground({ action: "removePlayed", videoId: dbString });
+      if (response && response.success) {
+        setWatchedUiState(false, badge, removeBtn);
+      }
+    };
+
     h3.appendChild(watchBtn);
     h3.appendChild(badge);
+    h3.appendChild(removeBtn);
   });
 }
 

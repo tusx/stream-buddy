@@ -46,7 +46,20 @@ async function markAsPlayed(videoId) {
   });
 }
 
-// 3. Function to Check if a Video was Played
+// 3. Function to Remove a Video from History
+async function removePlayed(videoId) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.delete(videoId);
+
+    request.onsuccess = () => resolve(true);
+    request.onerror = (event) => reject(event.target.error);
+  });
+}
+
+// 4. Function to Check if a Video was Played
 async function checkIfPlayed(videoId) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -62,7 +75,7 @@ async function checkIfPlayed(videoId) {
   });
 }
 
-// 4. Function to Clear All History (NEW)
+// 5. Function to Clear All History (NEW)
 async function clearHistory() {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -77,7 +90,7 @@ async function clearHistory() {
   });
 }
 
-// 5. Function to summarize watched items for the popup
+// 6. Function to summarize watched items for the popup
 async function getWatchStats() {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -114,7 +127,7 @@ async function getWatchStats() {
   });
 }
 
-// 6. Message Listener (The "API" for your Content & Popup Scripts)
+// 7. Message Listener (The "API" for your Content & Popup Scripts)
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Route: Save a video
@@ -123,6 +136,14 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then(() => sendResponse({ success: true }))
       .catch((error) => sendResponse({ success: false, error: error.toString() }));
     return true; 
+  }
+
+  // Route: Remove a video from watched history
+  if (message.action === "removePlayed") {
+    removePlayed(message.videoId)
+      .then(() => sendResponse({ success: true }))
+      .catch((error) => sendResponse({ success: false, error: error.toString() }));
+    return true;
   }
 
   // Route: Check a video

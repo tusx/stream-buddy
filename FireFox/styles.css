@@ -201,6 +201,102 @@
   display: none; /* Hidden by default until DB confirms watched status */
 }
 
+.streambuddy-remove-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.streambuddy-remove-btn:hover {
+  transform: scale(1.08);
+  opacity: 0.9;
+}
+
+.streambuddy-remove-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+
+#streambuddy-confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 37, 63, 0.88);
+  backdrop-filter: blur(3px);
+  z-index: 1000000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#streambuddy-confirm-overlay.active {
+  display: flex;
+}
+
+.streambuddy-confirm-modal {
+  width: min(100%, 420px);
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  color: white;
+  border: 1px solid #e50914;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  padding: 22px 18px;
+  text-align: center;
+  font-family: sans-serif;
+}
+
+.streambuddy-confirm-title {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.streambuddy-confirm-message {
+  margin: 0;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.streambuddy-confirm-detail {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #cbd5e1;
+}
+
+.streambuddy-confirm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.streambuddy-confirm-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+}
+
+.streambuddy-confirm-btn.danger {
+  background: #e50914;
+}
+
+.streambuddy-confirm-btn.secondary {
+  background: #64748b;
+}
+
 .title{
   display: block !important;
 }
