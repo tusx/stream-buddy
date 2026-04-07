@@ -119,6 +119,28 @@ function mountModalIframe(url) {
   globalModal.iframe = iframe;
 }
 
+function normalizeDisplayTitle(value, fallback) {
+  const normalized = (value || "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([)\].,:;!?])/g, "$1")
+    .trim();
+
+  return normalized || fallback;
+}
+
+function getMovieTitle(titleContainer) {
+  if (!titleContainer) return "Movie";
+
+  const heading = titleContainer.querySelector('h2 a, h2');
+  const titleText = heading ? heading.textContent : titleContainer.textContent;
+  return normalizeDisplayTitle(titleText, "Movie");
+}
+
+function getEpisodeDisplayTitle(link, episodeNumber) {
+  const episodeName = normalizeDisplayTitle(link ? link.textContent : "", "");
+  return episodeName ? `Episode ${episodeNumber}: ${episodeName}` : `Episode ${episodeNumber}`;
+}
+
 function switchModalServer(url, serverName = "") {
   modalSwitchToken += 1;
   const currentToken = modalSwitchToken;
@@ -274,8 +296,8 @@ function openVideoModal(titleText, servers, defaultServerName) {
     const playerArea = document.createElement('div');
     playerArea.className = "streambuddy-player-area";
 
-    header.appendChild(title);
     header.appendChild(btnContainer);
+    header.appendChild(title);
 
     closeBtn.onclick = () => {
       overlay.classList.remove("active");
@@ -296,7 +318,7 @@ function openVideoModal(titleText, servers, defaultServerName) {
     globalModal = { overlay, title, btnContainer, playerArea, iframe: null };
   }
 
-  globalModal.title.innerText = "StreamBuddy: " + titleText;
+  globalModal.title.textContent = normalizeDisplayTitle(titleText, "StreamBuddy");
   globalModal.btnContainer.innerHTML = '';
   modalSwitchToken += 1;
   globalModal.playerArea.replaceChildren();
@@ -390,7 +412,7 @@ function initMovieLogic(media) {
         url: s.movie_url.replace(/\{\{movie-id\}\}/g, media.rawId)
       })).sort((a, b) => a.name.localeCompare(b.name));
 
-      openVideoModal("Movie", processedServers, config.defaultServer);
+      openVideoModal(getMovieTitle(titleContainer), processedServers, config.defaultServer);
     };
 
     removeBtn.onclick = async (e) => {
@@ -473,7 +495,7 @@ function initTvLogic(media) {
           .replace(/\{\{episode-id\}\}/g, epId)
       })).sort((a, b) => a.name.localeCompare(b.name));
 
-      openVideoModal(`Episode ${epId}`, processedServers, config.defaultServer);
+      openVideoModal(getEpisodeDisplayTitle(link, epId), processedServers, config.defaultServer);
     };
 
     removeBtn.onclick = async (e) => {

@@ -39,12 +39,17 @@
   border-radius: 12px 12px 0 0;
   align-items: center;
   border-bottom: 2px solid #e50914; /* Red bottom border */
+  overflow: hidden;
 }
 
 .streambuddy-title {
   color: white;
   font-weight: bold;
-  margin-right: 20px;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* --- Buttons --- */
@@ -188,6 +193,7 @@
 .streambuddy-server-buttons {
   display: flex;
   gap: 10px;
+  flex: 0 0 auto;
 }
 
 /* --- Watched PNG Badge (Mobile Friendly Inline) --- */
