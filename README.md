@@ -15,6 +15,8 @@ With this extension i aim to solve the following issues:
 - Support for Android devices
 
 ## Installation & Setup
+<a href="https://addons.mozilla.org/firefox/addon/netflix-prime-auto-skip/"><img src="https://raw.githubusercontent.com/Dreamlinerm/Netflix-Prime-Auto-Skip/refs/heads/main/docs/Logos/download%20button/firefox.png" alt="Install on Firefox"/>
+
 You can install the extension on [FireFox Desktop](https://addons.mozilla.org/en-US/firefox/addon/streambuddy/) and [FireFox Mobile](https://addons.mozilla.org/en-US/firefox/addon/streambuddy/)
 
 After installation, you need to add servers in a JSON format in the extension like this:
